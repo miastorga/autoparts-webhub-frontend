@@ -10,5 +10,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://host.docker.internal:3000}
     extra_hosts:
       - "host.docker.internal:host-gateway"
