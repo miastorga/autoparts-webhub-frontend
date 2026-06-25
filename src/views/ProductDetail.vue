@@ -5,10 +5,14 @@ const props = defineProps({
   partId: {
     type: Number,
     required: true
+  },
+  user: {
+    type: Object,
+    default: null
   }
 })
 
-defineEmits(['volver'])
+defineEmits(['volver', 'ir-a-login'])
 
 const producto = ref(null)
 const cargando = ref(true)
@@ -221,27 +225,38 @@ function formatoPrecio(valor) {
         <div class="chat-head">
           <span>Asistente AutoParts</span>
         </div>
-        <div class="chat-body">
-          <div
-            v-for="(msg, i) in mensajes"
-            :key="i"
-            class="msg"
-            :class="msg.tipo"
-          >
-            {{ msg.texto }}
+        <div v-if="props.user" class="chat-wrapper">
+          <div class="chat-body">
+            <div
+              v-for="(msg, i) in mensajes"
+              :key="i"
+              class="msg"
+              :class="msg.tipo"
+            >
+              {{ msg.texto }}
+            </div>
+            <div v-if="enviandoChat" class="msg ia loading-dots">Asistente está escribiendo...</div>
           </div>
-          <div v-if="enviandoChat" class="msg ia loading-dots">Asistente está escribiendo...</div>
+          <div class="chat-input">
+            <input
+              type="text"
+              placeholder="Pregunta compatibilidad, stock..."
+              v-model="nuevoMensaje"
+              :disabled="enviandoChat"
+              @keyup.enter="enviarMensaje"
+            >
+            <button @click="enviarMensaje" :disabled="enviandoChat">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+          </div>
         </div>
-        <div class="chat-input">
-          <input
-            type="text"
-            placeholder="Pregunta compatibilidad, stock..."
-            v-model="nuevoMensaje"
-            :disabled="enviandoChat"
-            @keyup.enter="enviarMensaje"
-          >
-          <button @click="enviarMensaje" :disabled="enviandoChat">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        <div v-else class="chat-locked">
+          <div style="font-size: 2.5rem; margin-bottom: 12px;">🔒</div>
+          <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 15px; font-weight: 500; line-height: 1.4; padding: 0 10px;">
+            Inicia sesión para interactuar con nuestro Asistente de IA y recibir ayuda personalizada.
+          </p>
+          <button class="btn btn-sm" @click="$emit('ir-a-login')" style="padding: 8px 16px; font-size: 0.85rem;">
+            Iniciar Sesión
           </button>
         </div>
       </div>
@@ -282,4 +297,15 @@ function formatoPrecio(valor) {
 .chat-input input:focus { border-color: var(--accent); }
 .chat-input button { background: var(--accent); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; margin-left: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .chat-input button:disabled { background: var(--border); cursor: not-allowed; }
+
+.chat-locked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px 20px;
+  background: var(--bg);
+  height: 316px;
+}
 </style>
