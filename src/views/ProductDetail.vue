@@ -12,24 +12,10 @@ const props = defineProps({
   }
 })
 
-defineEmits(['volver', 'ir-a-login'])
+defineEmits(['volver', 'ir-a-login', 'agregar-carrito'])
 
 const producto = ref(null)
 const cargando = ref(true)
-
-const mensajes = ref([
-  { tipo: 'ia', texto: '¡Hola! Soy el asistente de AutoParts WebHub. ¿Tienes dudas sobre la compatibilidad de este repuesto o quieres agendar una cita de retiro?' }
-])
-
-const nuevoMensaje = ref('')
-const enviandoChat = ref(false)
-
-// Estado para el modal/formulario de reserva directa
-const mostrarFormReserva = ref(false)
-const fechaReserva = ref('')
-const horaReserva = ref('')
-const reservando = ref(false)
-const mensajeReserva = ref('')
 
 onMounted(async () => {
   await cargarDetalle()
@@ -37,12 +23,6 @@ onMounted(async () => {
 
 watch(() => props.partId, async () => {
   await cargarDetalle()
-  // Resetear chat
-  mensajes.value = [
-    { tipo: 'ia', texto: '¡Hola! Soy el asistente de AutoParts WebHub. ¿Tienes dudas sobre la compatibilidad de este repuesto o quieres agendar una cita de retiro?' }
-  ]
-  mostrarFormReserva.value = false
-  mensajeReserva.value = ''
 })
 
 async function cargarDetalle() {
@@ -58,99 +38,6 @@ async function cargarDetalle() {
     console.error('Error al cargar detalle:', err)
   } finally {
     cargando.value = false
-  }
-}
-
-async function enviarMensaje() {
-  if (!nuevoMensaje.value.trim() || enviandoChat.value) return
-  
-  const textoUsuario = nuevoMensaje.value.trim()
-  mensajes.value.push({ tipo: 'user', texto: textoUsuario })
-  nuevoMensaje.value = ''
-  enviandoChat.value = true
-
-  try {
-    // Convertir el historial de mensajes de la UI al formato que espera Gemini en el Backend
-    // Excluimos el último mensaje que acabamos de agregar (se manda en la propiedad 'message')
-    const historyPayload = mensajes.value.slice(0, -1).map(m => ({
-      role: m.tipo === 'ia' ? 'model' : 'user',
-      parts: [{ text: m.texto }]
-    }))
-
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-bypass-auth': 'true' // Para saltar la autenticación de desarrollo en el backend
-      },
-      body: JSON.stringify({
-        message: textoUsuario,
-        history: historyPayload
-      })
-    })
-
-    if (res.ok) {
-      const data = await res.json()
-      mensajes.value.push({ tipo: 'ia', texto: data.reply })
-    } else {
-      const data = await res.json().catch(() => ({}))
-      mensajes.value.push({ 
-        tipo: 'ia', 
-        texto: `Lo siento, ocurrió un error al procesar tu solicitud: ${data.message || res.statusText}` 
-      })
-    }
-  } catch (err) {
-    console.error('Error al enviar chat:', err)
-    mensajes.value.push({ tipo: 'ia', texto: 'Error de red. Asegúrate de que el backend esté encendido.' })
-  } finally {
-    enviandoChat.value = false
-    // Scroll al final del chat
-    setTimeout(() => {
-      const chatBody = document.querySelector('.chat-body')
-      if (chatBody) chatBody.scrollTop = chatBody.scrollHeight
-    }, 100)
-  }
-}
-
-async function realizarReserva() {
-  if (!fechaReserva.value || !horaReserva.value || reservando.value) return
-  
-  reservando.value = true
-  mensajeReserva.value = ''
-
-  try {
-    const res = await fetch('/api/appointments', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-bypass-auth': 'true' // Bypass para desarrollo
-      },
-      body: JSON.stringify({
-        user_id: 1, // Usuario de prueba
-        part_id: props.partId,
-        quantity: 1,
-        appointment_date: fechaReserva.value,
-        appointment_time: horaReserva.value,
-        status: 'pending',
-        created_by_ia: false
-      })
-    })
-
-    const data = await res.json()
-    if (res.ok) {
-      mensajeReserva.value = `¡Cita agendada con éxito! Cita ID: ${data.id}. Te esperamos el ${fechaReserva.value} a las ${horaReserva.value}.`
-      fechaReserva.value = ''
-      horaReserva.value = ''
-      // Opcional: recargar detalle si cambia stock
-      await cargarDetalle()
-    } else {
-      mensajeReserva.value = `Error al agendar: ${data.error || data.message || 'Slot no disponible o fuera de horario (09:00 - 17:30)'}`
-    }
-  } catch (err) {
-    console.error('Error al agendar cita:', err)
-    mensajeReserva.value = 'Error al conectar con el servidor para agendar.'
-  } finally {
-    reservando.value = false
   }
 }
 
@@ -189,77 +76,18 @@ function formatoPrecio(valor) {
 
         <div class="price" style="font-size: 2rem;">{{ formatoPrecio(producto.price) }}</div>
         
-        <div v-if="!mostrarFormReserva">
-          <button class="btn" style="padding: 14px 30px; font-size: 1.05rem;" @click="mostrarFormReserva = true">
-            Reservar para Retiro en Tienda
+        <div>
+          <button 
+            class="btn" 
+            style="padding: 14px 30px; font-size: 1.05rem;" 
+            :disabled="producto.available_stock === 0"
+            @click="$emit('agregar-carrito', producto)"
+          >
+            {{ producto.available_stock === 0 ? 'Sin Stock' : 'Agregar al Carrito de Reserva' }}
           </button>
-        </div>
-        
-        <div v-else class="reserva-form">
-          <h4>Agendar Cita de Retiro</h4>
-          <div class="form-row">
-            <div>
-              <label>Fecha:</label>
-              <input type="date" v-model="fechaReserva" required>
-            </div>
-            <div>
-              <label>Hora (09:00 - 17:30):</label>
-              <input type="time" v-model="horaReserva" required>
-            </div>
-          </div>
-          
-          <div class="form-actions" style="margin-top: 15px;">
-            <button class="btn" :disabled="reservando" @click="realizarReserva">
-              {{ reservando ? 'Reservando...' : 'Confirmar Reserva' }}
-            </button>
-            <button class="btn btn-outline" style="margin-left: 10px;" @click="mostrarFormReserva = false">
-              Cancelar
-            </button>
-          </div>
-          
-          <p v-if="mensajeReserva" class="mensaje-reserva">{{ mensajeReserva }}</p>
         </div>
       </div>
 
-      <div class="chatbot-inline">
-        <div class="chat-head">
-          <span>Asistente AutoParts</span>
-        </div>
-        <div v-if="props.user" class="chat-wrapper">
-          <div class="chat-body">
-            <div
-              v-for="(msg, i) in mensajes"
-              :key="i"
-              class="msg"
-              :class="msg.tipo"
-            >
-              {{ msg.texto }}
-            </div>
-            <div v-if="enviandoChat" class="msg ia loading-dots">Asistente está escribiendo...</div>
-          </div>
-          <div class="chat-input">
-            <input
-              type="text"
-              placeholder="Pregunta compatibilidad, stock..."
-              v-model="nuevoMensaje"
-              :disabled="enviandoChat"
-              @keyup.enter="enviarMensaje"
-            >
-            <button @click="enviarMensaje" :disabled="enviandoChat">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-            </button>
-          </div>
-        </div>
-        <div v-else class="chat-locked">
-          <div style="font-size: 2.5rem; margin-bottom: 12px;">🔒</div>
-          <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 15px; font-weight: 500; line-height: 1.4; padding: 0 10px;">
-            Inicia sesión para interactuar con nuestro Asistente de IA y recibir ayuda personalizada.
-          </p>
-          <button class="btn btn-sm" @click="$emit('ir-a-login')" style="padding: 8px 16px; font-size: 0.85rem;">
-            Iniciar Sesión
-          </button>
-        </div>
-      </div>
     </div>
     <div v-else class="no-results">El repuesto seleccionado no existe.</div>
   </div>

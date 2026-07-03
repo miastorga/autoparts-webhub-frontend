@@ -35,13 +35,46 @@ async function procesarFormulario() {
     }
     
     cargando.value = true
-    setTimeout(() => {
-      cargando.value = false
-      const role = email.value.toLowerCase().includes('admin') 
-        ? 'admin' 
-        : (email.value.toLowerCase().includes('mecanico') || email.value.toLowerCase().includes('mechanic') ? 'mechanic' : 'client')
-      emit('login', { email: email.value, role })
-    }, 800)
+    try {
+      const resCsrf = await fetch('/api/auth/csrf');
+      if (!resCsrf.ok) throw new Error('Error al obtener el token CSRF');
+      const { csrfToken } = await resCsrf.json();
+      
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/api/auth/callback/credentials';
+      
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrfToken';
+      csrfInput.value = csrfToken;
+      form.appendChild(csrfInput);
+      
+      const emailInput = document.createElement('input');
+      emailInput.type = 'hidden';
+      emailInput.name = 'email';
+      emailInput.value = email.value;
+      form.appendChild(emailInput);
+      
+      const passwordInput = document.createElement('input');
+      passwordInput.type = 'hidden';
+      passwordInput.name = 'password';
+      passwordInput.value = password.value;
+      form.appendChild(passwordInput);
+      
+      const callbackInput = document.createElement('input');
+      callbackInput.type = 'hidden';
+      callbackInput.name = 'callbackUrl';
+      callbackInput.value = window.location.origin;
+      form.appendChild(callbackInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+    } catch (err) {
+      console.error('Error al iniciar sesión:', err);
+      error.value = 'Error al intentar conectar con el servidor de autenticación.';
+      cargando.value = false;
+    }
   } else {
     if (!name.value || !email.value || !password.value || !confirmPassword.value) {
       error.value = 'Por favor, completa todos los campos.'
