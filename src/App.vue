@@ -89,10 +89,12 @@ async function enviarMensaje() {
   enviandoChat.value = true
 
   try {
-    const historyPayload = mensajes.value.slice(0, -1).map(m => ({
-      role: m.tipo === 'ia' ? 'model' : 'user',
-      parts: [{ text: m.texto }]
-    }))
+    const historyPayload = mensajes.value.slice(0, -1)
+      .filter(m => m.texto && m.texto.trim())
+      .map(m => ({
+        role: m.tipo === 'ia' ? 'model' : 'user',
+        parts: [{ text: m.texto }]
+      }))
 
     const activePartId = pantallaActiva.value === 'detail' ? productoIdSeleccionado.value : null;
 
@@ -113,10 +115,9 @@ async function enviarMensaje() {
       const data = await res.json()
       mensajes.value.push({ tipo: 'ia', texto: data.reply })
     } else {
-      const data = await res.json().catch(() => ({}))
       mensajes.value.push({ 
         tipo: 'ia', 
-        texto: `Lo siento, ocurrió un error: ${data.message || res.statusText}` 
+        texto: 'Lo siento, en este momento el servicio del asistente está experimentando una alta demanda. Por favor, intenta preguntar de nuevo en unos segundos.' 
       })
     }
   } catch (err) {

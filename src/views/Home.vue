@@ -28,9 +28,6 @@ defineEmits(['explorar', 'login'])
         <button class="btn btn-primary btn-glow" style="padding: 14px 28px; font-size: 1.05rem;" @click="$emit('explorar')">
           Explorar Catálogo 🚀
         </button>
-        <button class="btn btn-outline" style="padding: 14px 28px; font-size: 1.05rem;" @click="$emit('login')">
-          Acceder al Panel 👤
-        </button>
       </div>
     </section>
 
