@@ -155,7 +155,9 @@ function limpiarFiltros() {
 
     <div v-else class="grid">
       <div class="card" v-for="producto in productos" :key="producto.id">
-        <div class="img-placeholder">{{ producto.category }}</div>
+        <div class="product-card-image">
+          <img :src="producto.image_url || '/images/repuesto_defecto.png'" :alt="producto.name">
+        </div>
         <h3>{{ producto.name }}</h3>
         <p class="vehiculo">SKU: {{ producto.sku }} | Ubicación: {{ producto.warehouse_location }}</p>
         <p class="price">{{ formatoPrecio(producto.price) }}</p>
@@ -179,10 +181,14 @@ function limpiarFiltros() {
 .no-results { grid-column: 1 / -1; text-align: center; color: var(--text-light); padding: 40px; font-size: 1.1rem; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
-.card { background: var(--surface); padding: 20px; border-radius: 16px; text-align: center; box-shadow: var(--shadow); transition: transform 0.2s, box-shadow 0.2s; border: 1px solid transparent; }
+.card { background: var(--surface); padding: 20px; border-radius: 16px; text-align: center; box-shadow: var(--shadow); transition: transform 0.2s, box-shadow 0.2s; border: 1px solid transparent; display: flex; flex-direction: column; }
 .card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); border-color: var(--border); }
-.img-placeholder { height: 140px; background: var(--bg); border-radius: 8px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; color: var(--text-light); font-size: 0.9rem; border: 1px dashed var(--border); text-transform: uppercase; font-weight: 600; }
-.card h3 { font-size: 1.1rem; color: var(--primary); margin-bottom: 8px; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.vehiculo { color: var(--text-light); font-size: 0.8rem; margin-bottom: 12px; }
-.price { color: var(--accent); font-weight: 700; font-size: 1.4rem; margin-bottom: 16px; }
+.card:hover .product-card-image img { transform: scale(1.06); }
+
+.product-card-image { height: 140px; background: var(--bg); border-radius: 10px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); position: relative; }
+.product-card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+
+.card h3 { font-size: 1.1rem; color: var(--primary); margin-bottom: 8px; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: left; }
+.vehiculo { color: var(--text-light); font-size: 0.8rem; margin-bottom: 12px; text-align: left; }
+.price { color: var(--accent); font-weight: 700; font-size: 1.4rem; margin-bottom: 16px; text-align: left; margin-top: auto; }
 </style>

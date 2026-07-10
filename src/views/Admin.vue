@@ -38,7 +38,8 @@ const productoEditando = ref({
   category: '',
   price: 0,
   available_stock: 0,
-  warehouse_location: ''
+  warehouse_location: '',
+  image_url: ''
 })
 const esEdicion = ref(false)
 const errorProducto = ref('')
@@ -371,7 +372,8 @@ function abrirAgregarProducto() {
     category: '',
     price: 0,
     available_stock: 0,
-    warehouse_location: ''
+    warehouse_location: '',
+    image_url: ''
   }
   mostrarFormProducto.value = true
 }
@@ -551,6 +553,7 @@ async function eliminarProducto(id) {
           <table>
             <thead>
               <tr>
+                <th>Imagen</th>
                 <th>SKU</th>
                 <th>Producto</th>
                 <th>Categoría</th>
@@ -562,6 +565,9 @@ async function eliminarProducto(id) {
             </thead>
             <tbody>
               <tr v-for="item in inventario" :key="item.id">
+                <td>
+                  <img :src="item.image_url || '/images/repuesto_defecto.png'" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); display: block;" />
+                </td>
                 <td style="color: var(--text-light);">{{ item.sku }}</td>
                 <td style="font-weight: 500;">{{ item.name }}</td>
                 <td>{{ item.category }}</td>
@@ -655,7 +661,7 @@ async function eliminarProducto(id) {
                   </div>
                 </div>
 
-                <div class="form-group" style="display: flex; flex-direction: column; text-align: left; margin-bottom: 20px;">
+                <div class="form-group" style="display: flex; flex-direction: column; text-align: left; margin-bottom: 15px;">
                   <label for="location" style="margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;">Ubicación en Bodega</label>
                   <input 
                     type="text" 
@@ -663,6 +669,17 @@ async function eliminarProducto(id) {
                     v-model="productoEditando.warehouse_location" 
                     placeholder="Ej: A-12" 
                     required
+                    style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; background: var(--bg);"
+                  >
+                </div>
+
+                <div class="form-group" style="display: flex; flex-direction: column; text-align: left; margin-bottom: 20px;">
+                  <label for="image_url" style="margin-bottom: 5px; font-size: 0.9rem; font-weight: 500;">URL de Imagen del Producto</label>
+                  <input 
+                    type="text" 
+                    id="image_url" 
+                    v-model="productoEditando.image_url" 
+                    placeholder="Ej: /images/freno_premium.png" 
                     style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; background: var(--bg);"
                   >
                 </div>

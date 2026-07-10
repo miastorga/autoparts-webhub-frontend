@@ -56,8 +56,7 @@ function formatoPrecio(valor) {
 
     <div v-else-if="producto" class="detail-view">
       <div class="detail-img">
-        <div style="font-size: 3.5rem; margin-bottom: 12px;">⚙️</div>
-        <strong>{{ producto.category }}</strong>
+        <img :src="producto.image_url || '/images/repuesto_defecto.png'" :alt="producto.name">
       </div>
 
       <div class="detail-info">
@@ -96,7 +95,8 @@ function formatoPrecio(valor) {
 <style scoped>
 .loading { text-align: center; font-size: 1.2rem; color: var(--text-light); margin-top: 50px; }
 .detail-view { display: flex; gap: 30px; background: var(--surface); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); align-items: flex-start; }
-.detail-img { width: 350px; height: 350px; background: var(--bg); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-light); border: 1px dashed var(--border); }
+.detail-img { width: 350px; height: 350px; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); }
+.detail-img img { width: 100%; height: 100%; object-fit: cover; }
 .detail-info { flex: 1; }
 .descripcion { color: var(--text-light); margin-bottom: 20px; line-height: 1.6; }
 .tag { display: inline-block; padding: 4px 10px; background: #dcfce7; color: #166534; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-bottom: 16px; }

@@ -101,8 +101,7 @@ async function enviarMensaje() {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'x-bypass-auth': 'true'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         message: textoUsuario,
